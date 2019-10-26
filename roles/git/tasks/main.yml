@@ -1,0 +1,23 @@
+- name: Install Git.
+  package:
+    name: "git"
+    state: "latest"
+
+- name: Create repository folder
+  file:
+    path: "{{ item.dest }}"
+    state: directory
+    owner: "{% if item.user is defined %}{{ item.user }}{% else %}{{ ansible_user }}{% endif %}"
+    mode: "0755"
+  loop: "{{ git_list }}"
+  when: git_list is defined
+
+- name: git repository update
+  become_user: "{% if item.user is defined %}{{ item.user }}{% else %}{{ ansible_user }}{% endif %}"
+  git:
+    repo: "{{ item.repo }}"
+    dest: "{{ item.dest }}"
+    force: "{{ item.force | default('yes') }}"
+  with_items: "{{ git_list }}"
+  when: git_list is defined
+

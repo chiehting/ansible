@@ -1,0 +1,8 @@
+---
+# defaults file for adauth
+realm_path: '/usr/sbin/realm'
+
+sssd_conf_path: '/etc/sssd/sssd.conf'
+sssd_conf_vars:
+  use_fully_qualified_names: 'false'
+  fallback_homedir: '/home/%u'

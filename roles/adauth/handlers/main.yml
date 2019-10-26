@@ -1,0 +1,7 @@
+---
+# handlers file for adauth
+
+- name: restart sssd
+  service:
+    name: sssd
+    state: restarted

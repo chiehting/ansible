@@ -1,0 +1,25 @@
+---
+- name: echo 'hello world'
+  command: echo 'hello world'
+  register: result
+
+- name: print stdout
+  debug:
+    msg: "{{ result.stdout }}"
+
+#- name: "Ansible | List all known variables and facts"
+#  debug:
+#    var: hostvars[inventory_hostname]
+
+#- name: show ansible_os_family
+#  debug: var=ansible_os_family 
+
+#- name: show ansible_distribution
+#  debug: var=ansible_distribution
+
+#- name: show ansible_distribution_release
+#  debug: var=ansible_distribution_release
+
+#- name: show ansible_distribution_version
+#  debug: var=ansible_distribution_version
+

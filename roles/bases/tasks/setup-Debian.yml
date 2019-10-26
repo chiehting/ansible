@@ -1,0 +1,4 @@
+- name: Install Debain package
+  package:
+    name:
+      - python3-apt

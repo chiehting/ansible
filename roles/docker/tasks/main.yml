@@ -1,0 +1,11 @@
+- name: Setup operating system
+  include_tasks: "{{ item }}"
+  with_first_found:
+    - files: "setup-{{ ansible_os_family }}.yml"
+
+- name: Install Docker.
+  include_tasks: docker.yml
+
+- name: Install Docker Compose.
+  include_tasks: docker-compose.yml
+

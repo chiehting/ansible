@@ -1,0 +1,16 @@
+---
+# tasks file for bases
+
+- name: Setup operating system
+  include_tasks: "{{ item }}"
+  with_first_found:
+    - files: "setup-{{ ansible_os_family }}.yml"
+      skip: 'True'
+
+
+- name: Install package
+  package:
+    name: "{{ item }}"
+  with_items: "{{ package_list }}"
+  when: package_list is defined
+

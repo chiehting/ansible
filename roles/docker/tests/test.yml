@@ -1,0 +1,5 @@
+---
+- hosts: testHost
+  remote_user: root
+  roles:
+    - docker
