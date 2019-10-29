@@ -1,4 +1,3 @@
 .DS_Store
 logs
 ansible_password
-known_hosts
