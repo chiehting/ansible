@@ -1,6 +1,6 @@
 - name: Install Docker.
   package:
-    name: "{{ docker_package_name }}-{{ docker_package_version }}"
+    name: "{{ docker_package_name }}"
     state: "present"
   notify:
     - restart docker

@@ -25,3 +25,7 @@
     state: present
     update_cache: true
 
+- name: Set docker package
+  set_fact:
+    docker_package_name: "{{ apk_docker_package_name }}"
+  when: apk_docker_package_name is defined and apk_docker_package_name
