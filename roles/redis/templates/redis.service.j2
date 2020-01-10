@@ -1,0 +1,19 @@
+[Unit]
+Description=Redis persistent key-value database
+After=network.target
+
+[Service]
+User={{ redis_user }}
+Group={{ redis_group }}
+ExecStart={{ redis_install_prefix }}/bin/redis-server {{ redis_sys_dir }}/redis_{{ item }}.conf
+ExecStop={{ redis_install_prefix }}/bin/redis-cli -p {{ item }} shutdown
+PIDFile={{ redis_pid_dir }}/redis_{{ item }}.pid
+Type=forking
+LimitNOFILE=65535
+LimitNPROC=65535
+RuntimeDirectory=redis
+RuntimeDirectoryMode=0755
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,8 +1,7 @@
 ---
-# tasks file for adauth
 - name: Setup operating system
   include_tasks: "{{ item }}"
   with_first_found:
     - files: "setup-{{ ansible_os_family }}.yml"
       skip: 'True'
-  when: adauth_realm is defined and adauth_realm
+

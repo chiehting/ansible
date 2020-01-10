@@ -1,0 +1,20 @@
+---
+redis_version: "redis-5.0.7"
+redis_source_url: "http://download.redis.io/releases/{{ redis_version }}.tar.gz"
+redis_install_prefix: /usr/local
+redis_sys_dir: /etc/redis
+redis_log_dir: /var/log/redis
+redis_pid_dir: /var/run/redis
+
+# Redis configuration
+redis_cluster_replicas: 1
+redis_home_dir: /opt/redis
+redis_user: redis
+redis_group: redis
+redis_config_requirepass:
+redis_config_ports:
+  - 6379
+
+# Redis Cluster
+redis_cluster_enable: false
+

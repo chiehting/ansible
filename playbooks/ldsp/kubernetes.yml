@@ -1,0 +1,11 @@
+- hosts: all
+  gather_facts: true
+  become: yes
+  vars:
+    firewall_allowed_tcp_ports:
+      - "22"
+      - "6443"
+      - "10250"
+  roles:
+#    - firewall
+    - kubernetes

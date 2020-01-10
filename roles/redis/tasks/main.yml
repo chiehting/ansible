@@ -1,0 +1,13 @@
+---
+- name: Create system user
+  include_tasks: create_system_user.yml
+
+- name: Install redis server
+  include_tasks: install_redis.yml
+
+- name: Setting configuration
+  include_tasks: setting_configuration.yml
+
+- name: Create Redis Cluster
+  include_tasks: create_redis_cluster.yml
+  when: redis_cluster_enable|bool == true and redis_role is defined

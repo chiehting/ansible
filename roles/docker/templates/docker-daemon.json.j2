@@ -1,0 +1,5 @@
+{
+{% if container_insecure_registries != "" %}
+  "insecure-registries": ["{{ container_insecure_registries | join('", "') }}"]
+{% endif %}
+}

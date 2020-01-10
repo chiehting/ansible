@@ -10,14 +10,19 @@
     owner: "{% if item.user is defined %}{{ item.user }}{% else %}{{ ansible_user }}{% endif %}"
     mode: "0755"
   loop: "{{ git_list }}"
-  when: git_list is defined
+  when: git_list is defined and (git_list | length>0)
 
-- name: git repository update
+- name: Git repository update
   become_user: "{% if item.user is defined %}{{ item.user }}{% else %}{{ ansible_user }}{% endif %}"
   git:
     repo: "{{ item.repo }}"
     dest: "{{ item.dest }}"
     force: "{{ item.force | default('yes') }}"
   with_items: "{{ git_list }}"
-  when: git_list is defined
+  when: git_list is defined and (git_list | length>0)
+
+- name: Run command
+  shell: "{{ item.cmd | default('pwd') }}"
+  with_items: "{{ git_list }}"
+  when: git_list is defined and (git_list | length>0)
 

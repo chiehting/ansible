@@ -11,12 +11,8 @@ Ansible部署腳本
 ├── Makefile
 ├── README.md
 ├── ansible.cfg
-├── ansible_password
-├── inventories
-│   └── test
-├── logs
 ├── playbooks
-│   └── test
+│   └── ldsp
 └── roles
     ├── adauth
     ├── bases
@@ -24,9 +20,14 @@ Ansible部署腳本
     ├── firewall
     ├── git
     ├── hostname
+    ├── known_hosts
     ├── kubernetes
+    ├── mysql
     ├── nginx
-    ├── test
+    ├── performance
+    ├── redis
+    ├── ssh
+    ├── timezone
     └── users
 ```
 

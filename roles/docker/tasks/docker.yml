@@ -1,7 +1,18 @@
-- name: Install Docker.
+- name: Install Docker package.
   package:
     name: "{{ docker_package_name }}"
     state: "present"
+
+- name: Start Docker.
+  service:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: manage /etc/docker/daemon.json
+  template:
+    src: docker-daemon.json.j2
+    dest: /etc/docker/daemon.json
+  when: container_insecure_registries is defined and container_insecure_registries|length>0
   notify:
     - restart docker
-

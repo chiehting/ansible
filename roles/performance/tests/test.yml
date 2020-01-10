@@ -1,0 +1,17 @@
+---
+- hosts: all
+  gather_facts: true
+  become: yes
+  vars:
+    sysctl_conf:
+      - net.core.somaxconn: 32768
+      - vm.overcommit_memory: 1
+    disable_thg: yes
+    limits_conf:
+      - { domain: '*', limit_type: 'hard', limit_item: 'nproc', value: 65535 }
+      - { domain: '*', limit_type: 'soft', limit_item: 'nproc', value: 65535 }
+      - { domain: '*', limit_type: 'hard', limit_item: 'nofile', value: 65535 }
+      - { domain: '*', limit_type: 'soft', limit_item: 'nofile', value: 65535 }
+  roles:
+    - performance
+

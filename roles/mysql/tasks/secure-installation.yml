@@ -1,0 +1,26 @@
+---
+- name: Get default password
+  shell: grep "A temporary password" /var/log/mysqld.err|cut -d ' ' -f13
+  register: default_password
+
+- name: Copy mysql_secure_installation.sh
+  template:
+    src: "mysql_secure_installation.sh.j2"
+    dest: "{{ mysql_root_home }}/mysql_secure_installation.sh"
+    owner: "{{ mysql_root_username }}"
+    mode: 0755
+
+- name: Reset default password
+  shell: "{{ mysql_root_home }}/mysql_secure_installation.sh && rm {{ mysql_root_home }}/mysql_secure_installation.sh"
+  when: (mysql_install_packages | bool)
+
+# Has to be after the root password assignment, for idempotency.
+- name: Copy .my.cnf file with root password credentials.
+  template:
+    src: "root-my.cnf.j2"
+    dest: "{{ mysql_root_home }}/.my.cnf"
+    owner: root
+    group: root
+    mode: 0600
+  when: mysql_install_packages | bool or mysql_root_password_update
+

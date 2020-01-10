@@ -1,0 +1,31 @@
+---
+- name: check redis-server is exists
+  command: command -v redis-server
+  ignore_errors: yes
+  changed_when: false
+  register: redis_exists
+
+- name: Get Redis source code
+  unarchive:
+    src: "{{ redis_source_url }}"
+    dest: "{{ redis_home_dir }}"
+    remote_src: yes
+  when: redis_exists is failed
+
+- name: Build Redis
+  make:
+    chdir: "{{ redis_home_dir }}/{{ redis_version }}"
+    target: install
+    params:
+      PREFIX: "{{ redis_install_prefix }}"
+  when: redis_exists is failed
+
+- name: Create a symbolic link
+  file:
+    src: "{{ redis_install_prefix }}/bin/{{ item }}"
+    dest: /bin/{{ item }}
+    state: link
+  with_items:
+    - redis-server
+    - redis-cli
+  when: redis_exists is failed

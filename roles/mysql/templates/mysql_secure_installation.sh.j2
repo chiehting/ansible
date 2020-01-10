@@ -1,0 +1,40 @@
+{{ ansible_managed | comment }}
+
+#!/bin/bash
+
+DEFAULT_ROOT_PASSWORD='{{ default_password.stdout }}'
+NEW_ROOT_PASSWORD='{{ mysql_root_password }}'
+SECURE_MYSQL=$(expect -c "
+
+set timeout 5
+spawn mysql_secure_installation
+
+expect \"Enter password for user root\"
+send \"$DEFAULT_ROOT_PASSWORD\r\"
+
+expect \"New password?\"
+send \"$NEW_ROOT_PASSWORD\r\"
+
+expect \"Re-enter new password?\"
+send \"$NEW_ROOT_PASSWORD\r\"
+
+expect \"Do you wish to continue with the password provided?\"
+send \"n\r\"
+
+expect \"Remove anonymous users?\"
+send \"y\r\"
+
+expect \"Disallow root login remotely?\"
+send \"y\r\"
+
+expect \"Remove test database and access to it?\"
+send \"y\r\"
+
+expect \"Reload privilege tables now?\"
+send \"y\r\"
+
+expect eof
+")
+
+echo "$SECURE_MYSQL"
+

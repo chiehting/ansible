@@ -1,0 +1,27 @@
+---
+- name: Setting Redis config
+  template:
+    src: redis.conf.j2
+    dest: "{{ redis_sys_dir }}/redis_{{ item }}.conf"
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    mode: '0644'
+  with_items: "{{ redis_config_ports }}"
+
+- name: Setting Redis daemon
+  template:
+    src: redis.service.j2
+    dest: "/usr/lib/systemd/system/redis_{{ item }}.service"
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    mode: '0644'
+  with_items: "{{ redis_config_ports }}"
+
+- name: Start Redis service
+  systemd:
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+    name: redis_{{ item }}.service
+  with_items: "{{ redis_config_ports }}"
+

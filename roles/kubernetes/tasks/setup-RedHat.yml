@@ -2,6 +2,16 @@
 - name: Swap off
   shell: swapoff -a
 
+- name: Disable SElinux
+  shell: setenforce 0
+
+- name: stop firewall
+  service: name=firewalld state=stopped
+  ignore_errors: true
+
+- name: Enable br_netfilter
+  shell: modprobe br_netfilter && echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables && echo 1 > /proc/sys/net/ipv4/ip_forward
+
 - name: Ensure Kubernetes repository exists.
   yum_repository:
     name: kubernetes

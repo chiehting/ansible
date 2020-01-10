@@ -1,0 +1,38 @@
+---
+- name: Check if Redis user exists
+  command: id {{ redis_user }}
+  ignore_errors: yes
+  changed_when: false
+  register: user_exists
+
+- name: Add redis group
+  group:
+    name: "{{ redis_group }}"
+    state: present
+  when: user_exists is failed
+
+- name: Add redis user
+  user:
+    name: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    comment: "Redis"
+    home: "{{ redis_home_dir }}"
+    shell: /sbin/nologin
+    create_home: true
+    state: present
+    system: yes
+  when: user_exists is failed
+
+- name: Create Redis directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    mode: '0755'
+  loop:
+    - "{{ redis_sys_dir }}"
+    - "{{ redis_home_dir }}"
+    - "{{ redis_log_dir }}"
+    - "{{ redis_pid_dir }}"
+

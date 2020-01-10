@@ -1,0 +1,10 @@
+[dev:vars]
+ansible_ssh_user=Justin.Lee
+
+[dev:children]
+redis
+
+[redis]
+redis1 ansible_ssh_host=192.168.20.189 redis_role=master
+redis2 ansible_ssh_host=192.168.20.190
+

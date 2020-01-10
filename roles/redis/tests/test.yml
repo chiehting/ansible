@@ -1,0 +1,23 @@
+---
+- hosts: all
+  gather_facts: true
+  become: yes
+  vars:
+    firewall_allowed_tcp_ports: ["22", "7000", "7001", "7002", "7003", "7004", "7005"]
+    sysctl_conf:
+      - net.core.somaxconn: 32768
+      - vm.overcommit_memory: 1
+    disable_thg: yes
+    limits_conf:
+      - { domain: '*', limit_type: 'hard', limit_item: 'nproc', value: 65535 }
+      - { domain: '*', limit_type: 'soft', limit_item: 'nproc', value: 65535 }
+      - { domain: '*', limit_type: 'hard', limit_item: 'nofile', value: 65535 }
+      - { domain: '*', limit_type: 'soft', limit_item: 'nofile', value: 65535 }
+    redis_config_requirepass: 6pa5zZsGFGtY
+    redis_cluster_enable: true
+    redis_config_ports: ["7000", "7001", "7002", "7003", "7004", "7005"]
+  roles:
+    - firewall
+    - performance
+    - redis
+

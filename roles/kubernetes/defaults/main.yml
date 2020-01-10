@@ -10,7 +10,7 @@ kubernetes_packages:
     state: present
 
 kubernetes_version: '1.16'
-kubernetes_version_rhel_package: '1.16.0'
+kubernetes_version_rhel_package: '1.16.3'
 
 kubernetes_role: master
 

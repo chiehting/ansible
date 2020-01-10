@@ -1,0 +1,12 @@
+galaxy_info:
+  author: chiehting
+  description: Install Redis server.
+  license: license (BSD, MIT)
+  min_ansible_version: 2.4
+  platforms:
+    - name: Centos
+      versions:
+      - 7
+  galaxy_tags:
+    - redis
+

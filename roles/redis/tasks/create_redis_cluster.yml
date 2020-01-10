@@ -1,0 +1,23 @@
+---
+- name: Set all ip address to variablea
+  set_fact: ips="{{ groups[ips_group_name | default(ansible_limit)] | map('extract', hostvars, ['ansible_default_ipv4', 'address'] ) | list }}"
+
+- name: Combine ips and ports
+  set_fact:
+    redis_services: "{{ redis_services | default([]) | union([item[0] ~ ':' ~  item[1] ] ) }}"
+  with_nested:
+    - "{{ ips }}"
+    - "{{ redis_config_ports }}"
+
+- name: Setting arguments
+  set_fact: redis_config_requirepass={{ '-a ' + redis_config_requirepass }}
+  when: (redis_config_requirepass is defined) and (redis_config_requirepass is not none)
+
+- name: Check Redis Cluster status
+  shell: "{{ redis_install_prefix }}/bin/redis-cli -c {{ redis_config_requirepass }} -p {{ redis_config_ports[0] }} cluster info|grep cluster_state "
+  register: redis_cluster_status
+
+- name: Create Redis Cluster
+  shell: "printf yes | {{ redis_install_prefix }}/bin/redis-cli --cluster create {{ redis_services | join(' ') }} --cluster-replicas {{ redis_cluster_replicas }} {{ redis_config_requirepass|default() }}"
+  when: redis_cluster_replicas is defined and redis_cluster_status.stdout != 'cluster_state:ok'
+
