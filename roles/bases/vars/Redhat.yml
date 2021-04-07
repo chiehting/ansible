@@ -1,0 +1,8 @@
+---
+# defaults file for bases
+
+package_list:
+  - tmux
+  - vim
+  - nc
+  - unzip

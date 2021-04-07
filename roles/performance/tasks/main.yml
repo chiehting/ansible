@@ -19,7 +19,7 @@
     owner: root
     group: root
     mode: '0644'
-  when: (disable_thg is defined) and (disable_thg|bool == True)
+  when: (ansible_os_family == "RedHat") and (disable_thg is defined) and (disable_thg|bool == True)
   register: result
 
 - name: Start service disable_thg
@@ -28,7 +28,7 @@
     state: started
     enabled: yes
     daemon_reload: yes
-  when: (result is succeeded) and (result.skipped is not defined )
+  when: (ansible_os_family == "RedHat") and (result is succeeded) and (result.skipped is not defined )
 
 - name: Setting ulimit
   pam_limits:

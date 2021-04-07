@@ -1,0 +1,12 @@
+---
+# System
+limits_conf:
+  - { domain: '*', limit_type: 'hard', limit_item: 'nproc', value: 65535 }
+  - { domain: '*', limit_type: 'soft', limit_item: 'nproc', value: 65535 }
+  - { domain: '*', limit_type: 'hard', limit_item: 'nofile', value: 65535 }
+  - { domain: '*', limit_type: 'soft', limit_item: 'nofile', value: 65535 }
+
+sysctl_conf:
+  - net.ipv4.tcp_fin_timeout: 10
+  - net.ipv4.tcp_tw_recycle: 1
+  - net.ipv4.tcp_tw_reuse: 1

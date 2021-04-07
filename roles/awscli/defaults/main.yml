@@ -1,0 +1,7 @@
+---
+package_list:
+  - unzip
+
+awscli_url: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+bin_dir: "/usr/bin"
+

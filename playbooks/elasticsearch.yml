@@ -1,0 +1,67 @@
+- name: Install elasticsearch
+  hosts: elasticsearch
+  gather_facts: true
+  become: yes
+  roles:
+    - role: elastic.elasticsearch
+    - git
+  vars:
+    # Install kibana, clone github repository
+    git_list:
+      - dest: /opt/kibana
+        repo: git@gitlab.hearts.tw:devops/kibana.git
+        user: Jarvis.Hearts
+        cmd: 'cd /opt/kibana && docker-compose up -d'
+    # Install Elasticsearch
+    es_version: "7.10.0"
+    es_data_dirs:
+      - "/opt/elasticsearch/data"
+    es_log_dir: "/opt/elasticsearch/logs"
+    es_config:
+      node.name: "node1"
+      network.host: "0.0.0.0"
+      cluster.initial_master_nodes: ["node1"]
+      cluster.name: "elasticsearch"
+      #node.data: false
+      #node.master: true
+      bootstrap.memory_lock: true
+    es_enable_transport_ssl: true
+    es_heap_size: 3g
+    es_plugins:
+      - plugin: ingest-attachment
+    es_xpack_license: ""
+    es_xpack_trial: true
+    es_plugins:
+      - plugin: ingest-attachment
+    es_api_basic_auth_username: elastic
+    es_api_basic_auth_password: Diija1234
+    es_api_sleep: 5
+    es_enable_http_ssl: false
+    es_enable_transport_ssl: true
+    es_ssl_keystore: "files/certs/keystore-password.p12"
+    es_ssl_truststore: "files/certs/truststore-password.p12"
+    es_ssl_keystore_password: Diija1234
+    es_ssl_truststore_password: Diija1234
+    es_validate_certs: no
+    #es_role_mapping:
+    #  power_user:
+    #    - "cn=admins,dc=example,dc=com"
+    #  user:
+    #    - "cn=users,dc=example,dc=com"
+    #    - "cn=admins,dc=example,dc=com"
+    es_users:
+      native:
+        kibana4_system:
+          password: TT43tWf566fU
+          roles:
+            - kibana4_server
+        elastic:
+          password: Diija1234
+        es_admin:
+          password: Diija1234
+          roles:
+            - superuser
+        developer:
+          password: 1qaz@WSX
+          roles:
+            - kibana_dashboard_only_user

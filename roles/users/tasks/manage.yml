@@ -1,4 +1,15 @@
 ---
+- name: Ensure group wheel exists
+  group:
+    name: wheel
+    state: present
+
+- name: Ensuring that wheel is able to use sudo without password
+  lineinfile:
+    path: /etc/sudoers
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
 
 - name: Adding primary group
   group:
@@ -15,13 +26,6 @@
 - name: Configure users
   include_tasks: manage_user.yml
   with_items: "{{ users }}"
-
-- name: Ensuring that wheel is able to use sudo without password
-  lineinfile:
-    path: /etc/sudoers
-    regexp: '^%wheel'
-    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
-    validate: 'visudo -cf %s'
 
 - name: Removing users
   user:

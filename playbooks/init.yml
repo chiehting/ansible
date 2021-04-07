@@ -5,13 +5,12 @@
     git_list: []
   roles:
     - bases
-    - users
     - git
     - docker
     - hostname
-    - adauth
     - known_hosts
     - timezone
-    - ssh
     - performance
-
+    - users
+    - ssh
+    - awscli
