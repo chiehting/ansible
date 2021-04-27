@@ -4,7 +4,6 @@
     state: "latest"
 
 - name: Git repository update
-  # become_user: "{{ ( git_user is defined ) | ternary( git_user, ansible_user) }}"
   git:
     repo: "{{ ( item.0.find('/') == -1 ) | ternary( git_project_path + '/' + item.0, item.0) }}"
     key_file: "{{ git_key_file }}"
@@ -18,7 +17,6 @@
   when: git_list is defined and ( git_list | length > 0 )
 
 - name: Git create tag
-  # become_user: "{{ ( git_user is defined ) | ternary( git_user, ansible_user) }}"
   shell: |
     # Set variable from Ansible
     tag_extension="{{ git_tag_extension }}"
@@ -48,7 +46,6 @@
   when: git_tag_auto_increment
 
 - name: Git tag push
-  # become_user: "{{ ( git_user is defined ) | ternary( git_user, ansible_user) }}"
   command: git push --tags
   args:
     chdir: "{{ git_dest + '/' + item.0.split('/')[-1].replace( git_repo_extension_name, '') }}"

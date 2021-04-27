@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  gather_facts: true
+  become: yes
+  vars:
+    git_project_path: git@gitlab.example.tw:devops
+    git_list: [
+      [ gitlab-ci-test.git, "master" ],
+    ]
+    git_tag_auto_increment: true
+    git_tag_extension: stage
+    git_tag_increment_point: third # none or first or second or third
+  roles:
+    - git
+

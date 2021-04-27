@@ -11,7 +11,6 @@
     git_tag_auto_increment: false
     git_tag_extension:
     git_tag_increment_point: none # none or first or second or third
-    git_user: root
     git_dest: /opt
     git_depth: 10
     git_key_file: ~/.ssh/id_rsa

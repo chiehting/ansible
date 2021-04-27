@@ -10,7 +10,6 @@ git_project_path:
 # 專案 source
 git_list: []
 # 權限配置
-# git_user: root
 git_dest: /opt
 git_depth: 10
 git_accept_hostkey: yes
