@@ -1,0 +1,19 @@
+---
+- hosts: localhost
+  gather_facts: true
+  become: yes
+  vars:
+    git_project_path: git@gitlab.example.tw:devops
+    git_list: [
+      [ gitlab-ci-test.git, "master" ],
+      [ git@gitlab.example.tw:devops/gitlab-ci-test.git, "cc0be9bc547a1d332c32e6ffef9e838b9a49b8fd" ],
+    ]
+    git_tag_auto_increment: false
+    git_tag_extension:
+    git_tag_increment_point: none # none or first or second or third
+    git_user: root
+    git_dest: /opt
+    git_depth: 10
+    git_key_file: ~/.ssh/id_rsa
+  roles:
+    - git

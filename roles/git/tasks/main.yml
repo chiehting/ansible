@@ -3,26 +3,54 @@
     name: "git"
     state: "latest"
 
-- name: Create repository folder
-  file:
-    path: "{{ item.dest }}"
-    state: directory
-    owner: "{% if item.user is defined %}{{ item.user }}{% else %}{{ ansible_user }}{% endif %}"
-    mode: "0755"
-  loop: "{{ git_list }}"
-  when: git_list is defined and (git_list | length>0)
-
 - name: Git repository update
-  become_user: "{% if item.user is defined %}{{ item.user }}{% else %}{{ ansible_user }}{% endif %}"
+  # become_user: "{{ ( git_user is defined ) | ternary( git_user, ansible_user) }}"
   git:
-    repo: "{{ item.repo }}"
-    dest: "{{ item.dest }}"
-    force: "{{ item.force | default('yes') }}"
-  with_items: "{{ git_list }}"
-  when: git_list is defined and (git_list | length>0)
+    repo: "{{ ( item.0.find('/') == -1 ) | ternary( git_project_path + '/' + item.0, item.0) }}"
+    key_file: "{{ git_key_file }}"
+    accept_hostkey: "{{ git_accept_hostkey }}"
+    dest: "{{ git_dest + '/' + item.0.split('/')[-1].replace(git_repo_extension_name,'') | lower }}"
+    force: "yes"
+    update: "yes"
+    depth: "{{ git_depth }}"
+    version: "{{ ( item.1 | length > 0 ) | ternary( item.1, git_default_version) }}"
+  loop: "{{ git_list }}"
+  when: git_list is defined and ( git_list | length > 0 )
 
-- name: Run command
-  shell: "{{ item.cmd | default('pwd') }}"
-  with_items: "{{ git_list }}"
-  when: git_list is defined and (git_list | length>0)
+- name: Git create tag
+  # become_user: "{{ ( git_user is defined ) | ternary( git_user, ansible_user) }}"
+  shell: |
+    # Set variable from Ansible
+    tag_extension="{{ git_tag_extension }}"
+    tag_increment_point="{{ git_tag_increment_point }}"
+    # Get Last tag
+    deployLastTag=$(git tag -l --sort=-v:refname | grep -e "${tag_extension}$" | head -n1)
+    firstNumber=$(echo ${deployLastTag:-0} |cut -d . -f1)
+    secondNumber=$(echo ${deployLastTag:-0} |cut -d . -f2)
+    thirdNumber=$(echo ${deployLastTag:-0} |cut -d . -f3)
+    # Get new tag
+    new_version=""
+    if [[ "${tag_increment_point}" == 'first' ]]; then
+      new_version="$((firstNumber +1)).0.0"
+    elif [[ "${tag_increment_point}" == 'second' ]]; then
+      new_version="${firstNumber}.$((secondNumber +1)).0"
+    elif [[ "${tag_increment_point}" == 'third' ]]; then 
+      new_version="${firstNumber}.${secondNumber}.$((thirdNumber +1))"
+    fi
+    # Create new tag
+    if [[ -n "$new_version" ]]; then
+      new_version="$new_version-${tag_extension}"
+      git tag ${new_version}
+    fi
+  args:
+    chdir: "{{ git_dest + '/' + item.0.split('/')[-1].replace( git_repo_extension_name, '') }}"
+  loop: "{{ git_list }}"
+  when: git_tag_auto_increment
 
+- name: Git tag push
+  # become_user: "{{ ( git_user is defined ) | ternary( git_user, ansible_user) }}"
+  command: git push --tags
+  args:
+    chdir: "{{ git_dest + '/' + item.0.split('/')[-1].replace( git_repo_extension_name, '') }}"
+  loop: "{{ git_list }}"
+  when: git_tag_auto_increment
