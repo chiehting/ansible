@@ -1,0 +1,8 @@
+---
+# defaults file for helm
+helm_script_path: /tmp/get_helm.sh
+helm_repo_add:
+  - name: "stable"
+    url: "https://charts.helm.sh/stable"
+  - name: "hashicorp"
+    url: "https://helm.releases.hashicorp.com"

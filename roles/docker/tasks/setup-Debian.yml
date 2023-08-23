@@ -17,6 +17,7 @@
 - name: Add Docker apt key.
   apt_key:
     url: "{{ apt_key_url }}"
+    keyring: /etc/apt/trusted.gpg.d/docker-apt-key.gpg
     state: present
 
 - name: Add Docker repository.

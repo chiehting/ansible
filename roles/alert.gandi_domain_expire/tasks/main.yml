@@ -1,0 +1,34 @@
+---
+# tasks file for alert.gandi_domain_expire
+- name: check sonar web is up
+  uri:
+    url: https://api.gandi.net/v5/domain/domains
+    method: GET
+    headers:
+      authorization: "Apikey {{ gandi_token_key }}"
+  register: result
+
+- name: import gandi_domain to json
+  debug:
+    msg: "{{  (item.dates.registry_ends_at[:10] | to_datetime('%Y-%m-%d') - ansible_date_time.iso8601[:10] | to_datetime('%Y-%m-%d')).days }}"
+  with_items: "{{ result.json }}"
+  register: domain_ends_days
+
+- name: alert to Telegram
+  ansible.builtin.uri:
+    url: https://api.telegram.org/sendMessage
+    body_format: form-urlencoded
+    body:
+      chat_id: -469754522
+      disable_notification: true
+      text: "The {{ result.json[idx].fqdn }} gandi domain expires in {{ item.msg }} days."
+# debug: msg="The {{ result.json[idx].fqdn }} gandi domain expires in {{ item.msg }} days."
+  when:
+    - item.msg | int < domain_ends_days.item.msg | default(30)
+    - result.json[idx].fqdn not in blacklist_domain
+  with_items: "{{ domain_ends_days.results }}"
+  loop_control:
+    index_var: idx
+
+
+

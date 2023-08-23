@@ -1,0 +1,16 @@
+---
+- name: Check kubectl installed
+  shell: command -v kubectl >/dev/null 2>&1
+  register: kubectl_command_result
+  ignore_errors: yes
+
+- name: Download and install bin file
+  become: yes
+  block:
+    - name: Download kubectl bin file
+      ansible.builtin.shell: 'curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"'
+    - name: Sets the permissions of kubectl bin file
+      ansible.builtin.shell: 'chmod 755 kubectl'
+    - name: Move bin file to path
+      ansible.builtin.shell: "mv kubectl {{ kubectl_bin_path }}"
+  when: kubectl_command_result.rc != 0

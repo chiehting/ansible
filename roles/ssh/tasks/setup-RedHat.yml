@@ -5,9 +5,9 @@
     line: "{{ item.line }}"
     state: present
   with_items:
-    - regexp: "^Port"
+    - regexp: "^#Port"
       line: "Port {{ security_ssh_port }}"
-    - regexp: "^PasswordAuthentication"
+    - regexp: "^(#)?PasswordAuthentication"
       line: "PasswordAuthentication {{ security_ssh_password_authentication }}"
     - regexp: "^PermitRootLogin"
       line: "PermitRootLogin {{ security_ssh_permit_root_login }}"

@@ -1,0 +1,10 @@
+---
+- name: Add Users
+  hosts: all
+  become: yes
+  gather_facts: false
+  vars:
+    git_list: []
+  roles:
+    - users
+

@@ -16,3 +16,10 @@
   with_items: "{{ package_list }}"
   when: package_list is defined
 
+- name: Remove root history.
+  ansible.builtin.shell: |
+    rm /root/.bash_history
+    ln -s /dev/null /root/.bash_history
+    exit 0
+  args:
+    executable: /bin/bash

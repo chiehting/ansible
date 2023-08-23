@@ -1,0 +1,70 @@
+---
+- name: Helm upgrade
+  hosts: localhost
+  gather_facts: false
+  #### test data
+  # vars:
+  #   awx_webhook_payload:
+  #     tag: "tag"
+  #     repositoryName: "repositoryName"
+  #     repositoryNamespace: "repositoryNamespace"
+  #     occurAt: 1667548101
+  #
+  #   deployNamespace: "dev"
+  #   repositoryNamespace: "bitwin-backend"
+  #   deployList:
+  #     - ["bitwin-server", "tag"]
+  #     - ["hd", "tag"]
+  #   multiApplication:
+  #     bitwin-server: ["bitwin-server-job", "bitwin-server"]
+  tasks:
+    - name: Setup variables
+      block:
+        - name: Setup variables from webhook
+          set_fact:
+            k8sNamespace: "{{ deployNamespace | default('default') }}"
+            helmValues: values
+            helmTemplate: "{{ awx_webhook_payload.repositoryNamespace }}"
+            helmdeployList:
+              - ["{{ awx_webhook_payload.repositoryName }}" , "{{ awx_webhook_payload.tag}}"]
+          when: awx_webhook_payload.occurAt is defined
+        - name: Setup variables from gui
+          set_fact:
+            k8sNamespace: "{{ deployNamespace | default('default') }}"
+            helmValues: values
+            helmTemplate: "{{ repositoryNamespace }}"
+            helmdeployList: "{{ projects }}"
+          when: awx_webhook_payload.occurAt is not defined
+
+    - ansible.builtin.debug:
+        msg: "namespace: {{ k8sNamespace }}, project: {{ multiApplication[item.0] | default([item.0]) }}, tag: {{ item.1 }}"
+      loop: "{{ helmdeployList }}"
+
+    - name: Helm
+      block:
+        - name: Helm configuration
+          ansible.builtin.shell: |
+            mkdir -p ~/.kube ~/.docker
+            cp -rf "{{ DOCKER_CONFIG_FILE }}" ~/.docker/config.json
+            cp -rf "{{ KUBERNETES_CONFIG_FILE }}" ~/.kube/config
+            helm repo add --username='{{ DOCKER_USER }}' --password='{{ DOCKER_PASSWORD }}' devops https://harbor.example.com/chartrepo/devops
+            helm repo update
+            rm -rf {{ helmValues }} {{ helmTemplate }}
+            helm pull --untar devops/{{ helmValues }}
+            helm pull --untar devops/{{ helmTemplate }}
+        - name: Helm upgrade
+          ansible.builtin.shell: |
+            namespace="{{ k8sNamespace }}"
+            for project in {{ multiApplication[item.0] | default([item.0]) | join(' ')}}
+            do
+              helm upgrade --install \
+              --set stage=${namespace} \
+              --set timestamp=$(date +"%Y%m%d%H%M%S") \
+              --set image.tag="{{ item.1 }}" \
+              -n "${namespace}" \
+              -f "{{ helmValues }}/{{ helmTemplate }}/${project}.yaml" "${project}" "{{ helmTemplate }}"
+            done
+          args:
+            executable: /bin/sh
+          loop: "{{ helmdeployList }}"
+      when: helmdeployList is defined

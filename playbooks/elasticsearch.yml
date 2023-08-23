@@ -9,8 +9,8 @@
     # Install kibana, clone github repository
     git_list:
       - dest: /opt/kibana
-        repo: git@gitlab.hearts.tw:devops/kibana.git
-        user: Jarvis.Hearts
+        repo: git@gitlab.example.com:devops/kibana.git
+        user: Jarvis
         cmd: 'cd /opt/kibana && docker-compose up -d'
     # Install Elasticsearch
     es_version: "7.16.2"

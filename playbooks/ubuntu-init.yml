@@ -1,0 +1,17 @@
+---
+- name: Init
+  hosts: all
+  become: yes
+  vars:
+    git_list: []
+  roles:
+    - bases
+    - git
+    - docker
+    - hostname
+    - known_hosts
+    - timezone
+    - performance
+    - ssh
+    - awscli
+

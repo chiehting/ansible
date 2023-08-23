@@ -1,0 +1,9 @@
+---
+- name: Check SSL cert expire days.
+  hosts: localhost
+  vars:
+    ssl_cert_expire_verify_hosts: []
+    ssl_cert_expire_after_days: 10
+  roles:
+    - alert.ssl_cert_expire
+

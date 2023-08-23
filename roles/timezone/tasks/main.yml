@@ -2,7 +2,7 @@
 # tasks file for timezone
 
 - name: Set timezone
-  timezone:
+  community.general.timezone:
     name: "{{ timezone }}"
   when: timezone is defined and timezone
 

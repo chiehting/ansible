@@ -1,0 +1,27 @@
+---
+- name: Check helm installed
+  shell: command -v helm >/dev/null 2>&1
+  register: helm_command_result
+  ignore_errors: yes
+
+- name: Install helm
+  become: yes
+  block:
+    - name: Download install script file
+      get_url:
+        url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+        dest: "{{ helm_script_path }}"
+        mode: '1755'
+    - name: execute "{{ helm_script_path }}"
+      shell: "{{ helm_script_path }}"
+    - name: Remove script file
+      ansible.builtin.file:
+        path: "{{ helm_script_path }}"
+        state: absent
+  when: helm_command_result.rc != 0
+
+- name: Add helm repo
+  kubernetes.core.helm_repository:
+    name: "{{ item.name }}"
+    repo_url: "{{ item.url }}"
+  with_items: "{{ helm_repo_add | default([]) }}"

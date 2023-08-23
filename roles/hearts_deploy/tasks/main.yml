@@ -1,0 +1,82 @@
+---
+# tasks file for deploy
+#
+- name: Deploy helm charts
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+    AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+    AWS_DEFAULT_REGION: "{{ aws_default_region | default('') }}"
+  block:
+    - name: Get current datetime
+      ansible.builtin.shell: "date +'%Y%m%d%H%M%S'"
+      register: datetime
+    - name: kubectl apply configmap
+      ansible.builtin.shell: "kubectl apply -f {{ helm_deploy_configuration_path }}/{{ helm_deploy_env }}/{{ (item.helm_value is defined) | ternary(item.helm_value,item.name) }}.yaml"
+      args:
+        chdir: "{{ helm_cddir | default('./') }}"
+      with_items: "{{ helm_deploy_projects | default([]) }}"
+    - name: helm upgrade
+      ansible.builtin.shell: |
+        helm upgrade --install -n {{ helm_deploy_env }} \
+        --set stage={{ helm_deploy_env }} \
+        --set timestamp={{ datetime.stdout }} \
+        --set image.tag={{ item.image_version }} \
+        -f {{ helm_deploy_configuration_path }}/values/{{ (item.helm_value is defined) | ternary(item.helm_value,item.name) }}.yaml \
+        {{ (item.helm_value is defined) | ternary(item.helm_value,item.name) }} {{ helm_deploy_chart }}
+      args:
+        chdir: "{{ helm_cddir | default('./') }}"
+      with_items: "{{ helm_deploy_projects | default([]) }}"
+  when: helm_deploy_projects | length > 0
+
+- name: Increment version number
+  block:
+    - name: Copy file with owner and permissions
+      ansible.builtin.copy:
+        src: "{{ secret_key }}"
+        dest: "~/.ssh/id_rsa"
+        mode: '0600'
+        force: yes
+      register: setup_secret_key_file
+      when: secret_key is defined and secret_key != ""
+    - name: Update git repository
+      git:
+        repo: "git@gitlab.example.com:{{ registry_group }}/{{ item.name }}.git"
+        accept_hostkey: "yes"
+        dest: "{{ git_dest + '/' + item.name | lower }}"
+        force: "yes"
+        update: "yes"
+        depth: "1"
+        version: "{{ item.image_version }}"
+      with_items: "{{ helm_deploy_projects | default([]) }}"
+    - name: Increment git tag
+      ansible.builtin.shell: |
+        version="{{ item.image_version }}"
+        firstNumber="$(echo ${version} |cut -d . -f1)"
+        secondNumber="$(echo ${version} |cut -d . -f2)"
+        new_version="${firstNumber}.$((secondNumber +1)).0-prod"
+        git tag -f ${new_version}
+      args:
+        chdir: "{{ git_dest + '/' + item.name | lower | default('./') }}"
+      with_items: "{{ helm_deploy_projects | default([]) }}"
+    - name: Git tag push
+      ansible.builtin.shell: git push --tags -o ci.skip
+      args:
+        chdir: "{{ git_dest + '/' + item.name | lower | default('./') }}"
+      with_items: "{{ helm_deploy_projects | default([]) }}"
+    - name: Ansible delete file
+      file:
+        path: "~/.ssh/id_rsa"
+        state: absent
+      when: setup_secret_key_file.skipped is not defined
+  when: helm_deploy_env == "prod"
+
+- name: Notification
+  ansible.builtin.shell: |
+      curl -X POST \
+      -d chat_id=-469754522 \
+      -d text="{{ deploy_user_name }} 執行部署 {{ (item.helm_value is defined) | ternary(item.helm_value,item.name) }} {{ registry_group }} {{ helm_deploy_env }} 服務完成, 當前版本號為 {{ item.image_version }}" \
+      -d disable_notification=true \
+      -s https://api.telegram.org/sendMessage
+  with_items: "{{ helm_deploy_projects | default([]) }}"
+  when: helm_deploy_projects | length > 0
+

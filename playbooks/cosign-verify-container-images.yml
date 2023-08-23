@@ -1,0 +1,36 @@
+---
+- name: Cosign verify images from harbor
+  hosts: localhost
+  gather_facts: false
+  vars:
+    ImageRegistry: "harbor.example.com"
+  tasks:
+    - name: Setup variables
+      block:
+        - name: Setup variables from webhook
+          set_fact:
+            ImageNamespace: "{{ tower_webhook_payload.repositoryNamespace }}"
+            Images:
+              - ["{{ tower_webhook_payload.repositoryName }}", "{{ tower_webhook_payload.tag }}"]
+          when: awx_webhook_payload.occurAt is defined
+        - name: Setup variables from gui
+          set_fact:
+            ImageNamespace: "{{ repositoryNamespace }}"
+            Images: "{{ projects }}"
+          when: awx_webhook_payload.occurAt is not defined
+
+    - name: Cosign
+      block:
+        - name: Cosign configuration
+          ansible.builtin.shell: |
+            mkdir -p ~/.docker
+            cp -rf "{{ DOCKER_CONFIG_FILE }}" ~/.docker/config.json
+          args:
+            executable: /bin/sh
+        - name: Cosign verify image
+          ansible.builtin.shell: |
+            cosign verify --key "{{ COSIGN_PUBLIC_CERT_FILE }}" "{{ ImageRegistry }}/{{ ImageNamespace }}/{{ item.0 }}:{{ item.1 }}"
+          args:
+            executable: /bin/sh
+          loop: "{{ Images }}"
+      when: Images is defined

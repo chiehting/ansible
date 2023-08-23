@@ -1,22 +1,32 @@
 ---
-- name: Setup operating system
-  include_tasks: "{{ item }}"
-  with_first_found:
-    - files: "setup-{{ ansible_os_family }}.yml"
-      skip: 'True'
+- name: Check aws installed
+  ansible.builtin.shell: aws --version
+  register: aws_command_result
+  ignore_errors: yes
 
-- name: Install package
-  package:
-    name: "{{ item }}"
-  with_items: "{{ package_list }}"
-  when: package_list is defined
+- debug: var=aws_command_result
 
-- name: Unarchive a awscli2
-  unarchive:
-    src: "{{ awscli_url }}"
-    dest: /opt
-    remote_src: yes
+- name: Install awscli
+  become: yes
+  block:
+    - name: Insatll package
+      package:
+        name: "{{ item }}"
+      with_items: "{{ package_list }}"
+      when: package_list is defined
+    - name: Unarchive a awscli2
+      unarchive:
+        src: "{{ awscli_url }}"
+        dest: ~
+        remote_src: yes
+    - name: Install awscli2
+      command: ~/aws/install -b /usr/bin --update
+  when: aws_command_result.rc == 127
 
-- name: Install awscli2
-  command: /opt/aws/install -b "{{ bin_dir }}" --update
-
+- name: run aws command
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+    AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+    AWS_DEFAULT_REGION: "{{ aws_default_region | default('') }}"
+  ansible.builtin.shell: aws {{ item }}
+  with_items: "{{ aws_command | default([]) }}"

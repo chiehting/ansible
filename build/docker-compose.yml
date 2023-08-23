@@ -1,0 +1,38 @@
+version: "3.7"
+
+services:
+  ansible:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ansible:python3.7.3-alpine3.9
+    container_name: ansible
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '1024k'
+        max-file: '10'
+    restart: always
+    volumes:
+      - '../:/opt/ansible'
+      - '../ssh:/root/.ssh'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    sysctls:
+      - 'net.core.somaxconn=65536'
+      - 'net.ipv4.tcp_syncookies=0'
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    working_dir: '/opt/ansible'
+    tty: true
+    command: |
+      bash -c "
+      /usr/sbin/sshd -D &&
+      chown -R root:root /root/.ssh &&
+      chmod -R 700 /root/.ssh &&
+      rm -f /root/.ssh/known_hosts &&
+      bash"
+
+networks:
+  default:
+    name: ansible

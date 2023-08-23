@@ -1,0 +1,20 @@
+---
+- name: Enable harbor immutable
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Enable harbor immutable
+      ansible.builtin.uri:
+        url: "https://harbor.example.com/api/v2.0/projects/{{ item.namespace }}/immutabletagrules/{{ item.id }}"
+        method: "PUT"
+        return_content: yes
+        user: "{{ HARBOR_USERNAME }}"
+        password: "{{ HARBOR_PASSWORD }}"
+        force_basic_auth: yes
+        headers:
+          Content-Type: "application/json "
+        body_format: json
+        body: '{"disabled": false, "action":"immutable","id":{{ item.id }},"scope_selectors":{"repository":[{"decoration":"repoMatches","kind":"doublestar","pattern":"**"}]},"tag_selectors":[{"decoration":"matches","kind":"doublestar","pattern":"**"}],"template":"immutable_template"}'
+      loop:
+        - { id: '8', namespace: 'backend' }
+        - { id: '9', namespace: 'frontend' }

@@ -1,0 +1,7 @@
+---
+# defaults file for deploy
+deploy_user_name: Jarvis
+helm_deploy_env: dev
+helm_deploy_configuration_path: configuration
+helm_cddir: "./"
+helm_deploy_chart: "templates/jarvis"

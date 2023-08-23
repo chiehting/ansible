@@ -6,12 +6,11 @@ git_repo_extension_name: .git
 # git_project_path 專案來源, git_list > git_project_path
 # 如果 git_list 是專案名稱(沒有 git 源), 會使用 git_project_path 當作git源; 
 # 如果 git_list 是完整 git repo url, 則使用 git_list 作 git 源.
-git_project_path:
+git_project_path: git@gitlab.example.com:devops
 # 專案 source
 git_list: []
 # 權限配置
 git_dest: /opt
-git_depth: 10
 git_accept_hostkey: yes
 git_key_file: null
 git_default_version: master

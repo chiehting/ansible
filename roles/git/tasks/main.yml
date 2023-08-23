@@ -1,17 +1,31 @@
+- name: Check git installed
+  shell: command -v git >/dev/null 2>&1
+  register: git_command_result
+  ignore_errors: yes
+
 - name: Install Git.
+  become: yes
   package:
     name: "git"
     state: "latest"
+  when: git_command_result.rc != 0
+
+- name: Copy file with owner and permissions
+  ansible.builtin.copy:
+    src: "{{ secret_key }}"
+    dest: "~/.ssh/id_rsa"
+    mode: '0600'
+    force: yes
+  register: setup_secret_key_file
+  when: secret_key is defined and secret_key != ""
 
 - name: Git repository update
   git:
     repo: "{{ ( item.0.find('/') == -1 ) | ternary( git_project_path + '/' + item.0, item.0) }}"
-    key_file: "{{ git_key_file }}"
     accept_hostkey: "{{ git_accept_hostkey }}"
     dest: "{{ git_dest + '/' + item.0.split('/')[-1].replace(git_repo_extension_name,'') | lower }}"
     force: "yes"
     update: "yes"
-    depth: "{{ git_depth }}"
     version: "{{ ( item.1 | length > 0 ) | ternary( item.1, git_default_version) }}"
   loop: "{{ git_list }}"
   when: git_list is defined and ( git_list | length > 0 )
@@ -22,18 +36,29 @@
     tag_extension="{{ git_tag_extension }}"
     tag_increment_point="{{ git_tag_increment_point }}"
     # Get Last tag
+    prodLastTag=$(git tag -l --sort=-v:refname | grep -e ".*prod$" | head -n1)
+    prodFirstNumber=$(echo ${prodLastTag:-0} |cut -d . -f1)
+    pordSecondNumber=$(echo ${prodLastTag:-0} |cut -d . -f2)
     deployLastTag=$(git tag -l --sort=-v:refname | grep -e "${tag_extension}$" | head -n1)
-    firstNumber=$(echo ${deployLastTag:-0} |cut -d . -f1)
-    secondNumber=$(echo ${deployLastTag:-0} |cut -d . -f2)
-    thirdNumber=$(echo ${deployLastTag:-0} |cut -d . -f3)
+    deployFirstNumber=$(echo ${deployLastTag:-0} |cut -d . -f1)
+    deploySecondNumber=$(echo ${deployLastTag:-0} |cut -d . -f2)
+    deployThirdNumber=$(echo ${deployLastTag:-0} |cut -d . -f3)
     # Get new tag
     new_version=""
     if [[ "${tag_increment_point}" == 'first' ]]; then
-      new_version="$((firstNumber +1)).0.0"
+      new_version="$((prodFirstNumber +1)).0.0"
     elif [[ "${tag_increment_point}" == 'second' ]]; then
-      new_version="${firstNumber}.$((secondNumber +1)).0"
-    elif [[ "${tag_increment_point}" == 'third' ]]; then 
-      new_version="${firstNumber}.${secondNumber}.$((thirdNumber +1))"
+      if [[ "${prodFirstNumber}" == "${deployFirstNumber}" ]]; then
+        new_version="${prodFirstNumber}.$((deploySecondNumber +1)).0"
+      else
+        new_version="${prodFirstNumber}.0.0"
+      fi
+    elif [[ "${tag_increment_point}" == 'third' ]]; then
+      if [[ "${pordSecondNumber}" == "${deploySecondNumber}" ]]; then
+        new_version="${prodFirstNumber}.${pordSecondNumber}.$((deployThirdNumber +1))"
+      else
+        new_version="${prodFirstNumber}.${pordSecondNumber}.0"
+      fi
     fi
     # Create new tag
     if [[ -n "$new_version" ]]; then
@@ -41,13 +66,20 @@
       git tag ${new_version}
     fi
   args:
-    chdir: "{{ git_dest + '/' + item.0.split('/')[-1].replace( git_repo_extension_name, '') }}"
+    executable: /bin/bash
+    chdir: "{{ git_dest + '/' + item.0.split('/')[-1].replace( git_repo_extension_name, '') | lower }}"
   loop: "{{ git_list }}"
   when: git_tag_auto_increment
 
 - name: Git tag push
   command: git push --tags
   args:
-    chdir: "{{ git_dest + '/' + item.0.split('/')[-1].replace( git_repo_extension_name, '') }}"
+    chdir: "{{ git_dest + '/' + item.0.split('/')[-1].replace( git_repo_extension_name, '') | lower }}"
   loop: "{{ git_list }}"
   when: git_tag_auto_increment
+
+- name: Ansible delete file
+  file:
+    path: "~/.ssh/id_rsa"
+    state: absent
+  when: setup_secret_key_file.skipped is not defined

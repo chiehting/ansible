@@ -1,0 +1,29 @@
+---
+# tasks file for alert.ssl_cert_expire
+- name: Get a cert from an https port
+  get_certificate:
+    host: "{{ item }}"
+    port: 443
+  register: cert
+  with_items: "{{ ssl_cert_expire_verify_hosts | default([]) }}"
+
+- name: How many days until cert expires
+  debug:
+    msg: "{{ (( cert.results[idx].not_after | to_datetime('%Y%m%d%H%M%SZ')) - (ansible_date_time.iso8601 | to_datetime('%Y-%m-%dT%H:%M:%SZ')) ).days }}"
+  register: expire_days
+  loop: "{{ ssl_cert_expire_verify_hosts | default([]) }}"
+  loop_control:
+    index_var: idx
+
+- name: alert to Telegram
+  ansible.builtin.uri:
+    url: https://api.telegram.org/sendMessage
+    body_format: form-urlencoded
+    body:
+      chat_id: -847077474
+      disable_notification: true
+      text: "The {{ ssl_cert_expire_verify_hosts[idx] }} cert expires in {{ item.msg }} days."
+  when: item.msg | int < ssl_cert_expire_after_days | default(15)
+  with_items: "{{ expire_days.results | default([]) }}"
+  loop_control:
+    index_var: idx
